@@ -1,4 +1,4 @@
 #!/bin/bash
-nohup java -Xms128m -Xmx1024m -Dserver.port=88 -jar '~/.local/lib/streama/streama.jar' > '~/.local/lib/streama/log/streama.log' 2>&1 &
-echo $! > '~/.local/lib/streama/log/streama.pid' &
+nohup java -Xms128m -Xmx512m -Dserver.port=9080 -jar '/usr/local/lib/streama/streama.jar' > '/usr/local/lib/streama/log/streama.log' 2>&1 &
+echo $! > '/usr/local/lib/streama/log/streama.pid' &
 exit $?;
