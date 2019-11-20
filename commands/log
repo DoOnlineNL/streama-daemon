@@ -1,0 +1,5 @@
+#!/bin/bash
+while tail -f '~/.local/lib/streama/log/streama.log'; do
+	PID=$(tail '~/.local/lib/streama/log/streama.pid');
+	echo "streama server process pid: ${PID}.";
+done;
