@@ -1,4 +1,4 @@
 #!/bin/bash
-nohup java -Xms128m -Xmx512m -Xnoclassgc -Dserver.port=69 -jar '/usr/local/lib/streama/streama.jar' > '/usr/local/lib/streama/log/streama.log' 2>&1 &
+nohup java -Xms128m -Xmx512m -Xnoclassgc -Dgrails.env=production -Dserver.port=69 -jar '/usr/local/lib/streama/streama.jar' > '/usr/local/lib/streama/log/streama.log' 2>&1 &
 echo $! > '/usr/local/lib/streama/log/streama.pid' &
 exit $?;
