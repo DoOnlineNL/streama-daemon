@@ -1,5 +1,5 @@
 #!/bin/bash
-while tail -f '/usr/local/lib/streama-daemon/log/streama.log'; do
-	PID=$(tail '/usr/local/lib/streama-daemon/log/streama.pid');
+while tail -f '/usr/local/lib/streama/log/streama.log'; do
+	PID=$(tail '/usr/local/lib/streama/log/streama.pid');
 	echo "streama daemon process pid: ${PID}.";
 done;
