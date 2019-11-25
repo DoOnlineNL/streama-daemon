@@ -1,13 +1,13 @@
 #!/bin/bash
 # Author: doOnline - D. van Dooijeweert
-# Version: 1.0.0
+# Version: 1.0.1
 # Website: https://www.doonline.nl
 
 # Tell the user that he can stop the log without killing the executable with ctrl+c
 echo -e "NOTICE: Exiting with CTRL+C does not kill the program, use: streama-daemon stop, to kill streama.\n";
 
 # Start a loop to display executable log from stored file.
-while tail -f '/usr/local/lib/streama/log/streama.log'; do
+while tail -f '/usr/local/lib/streama/etc/streama.log'; do
 	# Sleep for 5 seconds each loop to make sure the machine doesn't get overloaded.
 	# Log might have slow responsetime to streama's executable, you could decrease the time for each loop to execute.
 	sleep 5;

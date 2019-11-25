@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: doOnline - D. van Dooijeweert
-# Version: 1.0.3
+# Version: 1.0.4
 # Website: https://www.doonline.nl
 
 function _start()
@@ -17,13 +17,13 @@ function _start()
 	nohup java -Xms128m -Xmx"$_max_memory" -Xnoclassgc -Dgrails.env="$_load_env" -Dserver.port="$_local_port" -jar '/usr/local/lib/streama/streama.jar' > \
 
 	# Save the output of the executable to a log file.
-	'/usr/local/lib/streama/log/streama.log' 2>&1;
+	'/usr/local/lib/streama/etc/streama.log' 2>&1;
 
 	# Save execution result.
 	_result=$?;
 
 	# Save the pid of this program to a file for later use in for example: shutdown of the program.
-	echo $! > '/usr/local/lib/streama/log/streama.pid';
+	echo $! > '/usr/local/etc/streama/log/streama.pid';
 
 	# Return results for checking if execution went right.
 	return $_result;
