@@ -39,13 +39,13 @@ while read _RUN _FOR _STEP do
 	fi
 	
 	# Write modified variables to file.
-	echo -e "$_RUN:$_FOR:$_STEP" > '/usr/local/lib/streama/etc/streama.var';
+	echo -e "$_RUN:$_FOR:$_STEP" > '/usr/local/lib/streama/etc/daemon.var';
 	
 	# Sleep each loop to ensure no system overload.
 	sleep "$_STEP";
 	
 # Shift variables to while loop
-done < '/usr/local/lib/streama/etc/streama.var';
+done < '/usr/local/lib/streama/etc/daemon.var';
 
 # Reset file reading rules for other scripts.
 $IFS=$_OLD_IFS;

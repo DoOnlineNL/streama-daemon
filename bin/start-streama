@@ -12,28 +12,29 @@ function _start()
 	
 	# Go to library, so execution is done from that point in the filesystem.
 	cd '/usr/local/lib/streama/' && \
-
-	# Execute jar with java and make sure it won't respond to session exits and startups.
-	nohup java -Xms128m -Xmx"$_max_memory" -Xnoclassgc -Dgrails.env="$_load_env" -Dserver.port="$_local_port" -jar '/usr/local/lib/streama/streama.jar' > \
-
-	# Save the output of the executable to a log file.
-	'/usr/local/lib/streama/etc/streama.log' 2>&1;
-
-	# Save execution result.
-	_result=$?;
+	
+	# Let the user know the program is starting
+	echo -e "[streama-daemon] Starting background process..." && \
+	echo -e "[streama-daemon] Use 'streama stop' to stop streama's daemon." && \
+	echo -e "[streama-daemon] Use 'streama help' for more instructions." && \
+	
+	# Execute jar with java and make sure it won't respond to session exits and startups and save the output of the executable to a log file.
+	nohup java -Xms128m -Xmx"$_max_memory" -Xnoclassgc -Dgrails.env="$_load_env" -Dserver.port="$_local_port" -jar '/usr/local/lib/streama/streama.jar' > '/usr/local/lib/streama/etc/streama.log' 2>&1 &
 
 	# Save the pid of this program to a file for later use in for example: shutdown of the program.
-	echo $! > '/usr/local/etc/streama/log/streama.pid';
+	echo $! > '/usr/local/lib/streama/etc/streama.pid' && \
+	echo -e "[streama-daemon] Successfully started background process with pid: $!..." && \
+	echo -e "[streama-daemon] Use 'streama read {process/daemon}' to see live streama's logs in the terminal.";
 
 	# Return results for checking if execution went right.
-	return $_result;
+	return $?;
 }
 
 # Execute start function.
 _start production 512m 8080;
 
 # Check for errors during execution.
-[ $? -ne 0 ] && echo -e "ERROR: Streama could not be started, please read the manual." && exit 1;
+[ $? -ne 0 ] && echo -e "[streama-daemon] ERROR: Streama could not be started, please read the manual." > "/usr/local/lib/streama/etc/streama.log" && exit 1;
 
 # Exit this bash script.
 exit 0;
