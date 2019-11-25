@@ -1,3 +1,39 @@
 #!/bin/bash
-cd '/usr/local/lib/streama/';
-nohup java -Xms128m -Xmx512m -Xnoclassgc -Dgrails.env=production -Dserver.port=69 -jar '/usr/local/lib/streama/streama.jar' > '/usr/local/lib/streama/log/streama.log' 2>&1 & echo $! > '/usr/local/lib/streama/log/streama.pid' & exit $?;
+# Author: doOnline - D. van Dooijeweert
+# Version: 1.0.3
+# Website: https://www.doonline.nl
+
+function _start()
+{
+	# Local variables
+	local _load_env=$1;
+	local _max_memory=$2;
+	local _local_port=$3;
+	
+	# Go to library, so execution is done from that point in the filesystem.
+	cd '/usr/local/lib/streama/' && \
+
+	# Execute jar with java and make sure it won't respond to session exits and startups.
+	nohup java -Xms128m -Xmx"$_max_memory" -Xnoclassgc -Dgrails.env="$_load_env" -Dserver.port="$_local_port" -jar '/usr/local/lib/streama/streama.jar' > \
+
+	# Save the output of the executable to a log file.
+	'/usr/local/lib/streama/log/streama.log' 2>&1;
+
+	# Save execution result.
+	_result=$?;
+
+	# Save the pid of this program to a file for later use in for example: shutdown of the program.
+	echo $! > '/usr/local/lib/streama/log/streama.pid';
+
+	# Return results for checking if execution went right.
+	return $_result;
+}
+
+# Execute start function.
+_start production 512m 8080;
+
+# Check for errors during execution.
+[ $? -ne 0 ] && echo -e "ERROR: Streama could not be started, please read the manual." && exit 1;
+
+# Exit this bash script.
+exit 0;

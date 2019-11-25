@@ -2,4 +2,5 @@
 while tail -f '/usr/local/lib/streama/log/streama.log'; do
 	PID=$(tail '/usr/local/lib/streama/log/streama.pid');
 	echo "streama daemon process pid: ${PID}.";
+	sleep 5;
 done;
