@@ -1,0 +1,13 @@
+#!/bin/bash
+# Author: doOnline - D. van Dooijeweert
+# Version: 1.0.0
+# Website: https://www.doonline.nl
+
+# Get pid from stored file.
+PID=$(tail '/usr/local/lib/streama/log/streama.pid');
+
+# Kill the program.
+kill -9 "${PID}" && \
+
+# Exit this bash script.
+exit $?;

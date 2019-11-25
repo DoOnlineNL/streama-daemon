@@ -1,4 +1,0 @@
-#!/bin/bash
-PID=$(tail '/usr/local/lib/streama/log/streama.pid');
-kill -9 "${PID}" & \
-exit $?;
