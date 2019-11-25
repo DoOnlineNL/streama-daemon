@@ -1,0 +1,57 @@
+#!/bin/bash
+# Author: doOnline - D. van Dooijeweert
+# Version: 1.0.1
+# Website: https://www.doonline.nl
+
+# Save the daemon's pid so it can be killed later.
+echo $! > '/usr/local/lib/streama/etc/daemon.pid';
+
+# Start streama.
+echo -e "[streama-daemon] Starting streama... This would usually take around 3 minutes." >> '/usr/local/lib/streama/etc/daemon.log';
+bash /usr/local/lib/streama/bin/start-streama;
+[ $? -ne 0 ] && echo -e "[streama-daemon] Couldn't start streama, something went wrong with executing Java." >> '/usr/local/lib/streama/etc/daemon.log' && exit 1;
+
+# Rules for reading files.
+$_OLD_IFS=$IFS;
+$IFS=":";
+
+# Loop trough variables in file etc/streama.var.
+while read _RUN _FOR _STEP do
+	# Exit the loop if etc/streama.var is empty or one of the values other then $_RUN became 0.
+	if [ "$_FOR" -eq 0 ] || [ "$_STEP" -eq 0 ] || [ -z "$_FOR" ] || [ -z "$_STEP" ] || [ -z "$_RUN" ]; then
+		exit;
+	fi
+
+	# Check if a restart should be executed.
+	if [ "$_RUN" -le "$_FOR" ]; then
+		# Add the slept time to $_RUN.
+		$(( _RUN + "$STEP" ));
+	else	
+		# Restart streama and log it to etc/streama.log and append that log to etc/last.log.
+		bash /usr/local/lib/streama/bin/stop-streama && \
+		sleep "$_STEP" && \
+		echo -e "[streama-daemon] Restarting streama... This would usually take around 3 minutes." >> '/usr/local/lib/streama/etc/daemon.log' && \
+		sleep "$_STEP" && \
+		bash /usr/local/lib/streama/bin/start-streama;
+
+		# Reset ran time
+		_RUN=0;
+	fi
+	
+	# Write modified variables to file.
+	echo -e "$_RUN:$_FOR:$_STEP" > '/usr/local/lib/streama/etc/streama.var';
+	
+	# Sleep each loop to ensure no system overload.
+	sleep "$_STEP";
+	
+# Shift variables to while loop
+done < '/usr/local/lib/streama/etc/streama.var';
+
+# Reset file reading rules for other scripts.
+$IFS=$_OLD_IFS;
+
+# Stop streama and check if it was executed correctly, then exit.
+bash /usr/local/lib/streama/bin/stop-streama;
+_RESULT=$?;
+[ $_RESULT -ne 0 ] && echo -e "[streama-daemon] Couldn't stop streama, something went wrong getting streama's pid." >> '/usr/local/lib/streama/etc/daemon.log' && exit 1;
+[ $_RESULT -eq 0 ] && echo -e "[streama-daemon] Stopped streama, everything should be gone right." >> '/usr/local/lib/streama/etc/daemon.log' && exit 0;
