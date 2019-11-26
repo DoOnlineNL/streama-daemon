@@ -4,10 +4,13 @@
 # Website: https://www.doonline.nl
 
 # Get pid from stored file.
-PID=$(tail '/usr/local/lib/streama/etc/streama.pid');
+_PID=$(tail '/usr/local/lib/streama/etc/streama.pid');
+
+# Clean up the stored pid and log file.
+echo "" > '/usr/local/lib/streama/etc/streama.pid' && \
 
 # Kill the program.
-kill -9 "${PID}" && \
+kill -9 "$_PID" 2>&1 || echo -e "" >> '[streama-daemon]' && exit 1;
 
 # Exit this bash script.
-exit $?;
+exit 0;

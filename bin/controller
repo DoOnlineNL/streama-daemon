@@ -3,9 +3,6 @@
 # Version: 1.0.1
 # Website: https://www.doonline.nl
 
-# Save the daemon's pid so it can be killed later.
-echo $! > '/usr/local/lib/streama/etc/daemon.pid';
-
 # Start streama.
 echo -e "[streama-daemon] Starting streama... This would usually take around 3 minutes." >> '/usr/local/lib/streama/etc/daemon.log';
 bash /usr/local/lib/streama/bin/start-streama;
@@ -28,7 +25,7 @@ while read _RUN _FOR _STEP do
 		$(( _RUN + "$STEP" ));
 	else	
 		# Restart streama and log it to etc/streama.log and append that log to etc/last.log.
-		bash /usr/local/lib/streama/bin/stop-streama && \
+		bash /usr/local/lib/streama/bin/stop-streama || echo -e "[streama-daemon] ERROR: Couldn't stop streama... Shutting down this daemon and trying again one more time!" >> '/usr/local/lib/streama/etc/daemon.log' && exit;
 		sleep "$_STEP" && \
 		echo -e "[streama-daemon] Restarting streama... This would usually take around 3 minutes." >> '/usr/local/lib/streama/etc/daemon.log' && \
 		sleep "$_STEP" && \
@@ -53,5 +50,10 @@ $IFS=$_OLD_IFS;
 # Stop streama and check if it was executed correctly, then exit.
 bash /usr/local/lib/streama/bin/stop-streama;
 _RESULT=$?;
+
+# Empty var file for next run.
+echo -e "" > '/usr/local/lib/streama/etc/daemon.var';
+
+# Exiting the daemon process
 [ $_RESULT -ne 0 ] && echo -e "[streama-daemon] Couldn't stop streama, something went wrong getting streama's pid." >> '/usr/local/lib/streama/etc/daemon.log' && exit 1;
 [ $_RESULT -eq 0 ] && echo -e "[streama-daemon] Stopped streama, everything should be gone right." >> '/usr/local/lib/streama/etc/daemon.log' && exit 0;
