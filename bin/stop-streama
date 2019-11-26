@@ -6,11 +6,11 @@
 # Get pid from stored file.
 _PID=$(tail '/usr/local/lib/streama/etc/streama.pid');
 
-# Clean up the stored pid and log file.
-echo "" > '/usr/local/lib/streama/etc/streama.pid' && \
-
 # Kill the program.
-kill -9 "$_PID" 2>&1 || echo -e "" >> '[streama-daemon]' && exit 1;
+kill -9 "$_PID" 2>&1 || exit 1;
+
+# Clean up the stored pid and log file.
+echo "" > '/usr/local/lib/streama/etc/streama.pid';
 
 # Exit this bash script.
 exit 0;

@@ -1,0 +1,17 @@
+#!/bin/bash
+# Author: doOnline - D. van Dooijeweert
+# Version: 1.0.0
+# Website: https://www.doonline.nl
+
+# Get pid from stored file.
+_PID=$(tail '/usr/local/lib/streama/etc/daemon.pid');
+
+# Kill the program.
+kill -9 "$_PID" 2>&1 || exit 1;
+
+# Clean up the stored pid and var file.
+echo "" > '/usr/local/lib/streama/etc/daemon.pid';
+echo "" > '/usr/local/lib/streama/etc/daemon.var';
+
+# Exit this bash script.
+exit 0;

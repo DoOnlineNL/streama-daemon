@@ -1,0 +1,45 @@
+#!/bin/bash
+# Author: doOnline - D. van Dooijeweert
+# Version: 1.0
+# Website: https://www.doonline.nl
+
+function _time()
+{
+	echo $(date -u +%s);
+}
+
+function _start()
+{
+	# Local variables
+	local _vars=$1;
+	
+	# Go to library, so execution is done from that point in the filesystem.
+	echo "$_vars" > '/usr/local/lib/streama/etc/daemon.var' && \
+	
+	# Log that streama is starting
+	echo -e "[streama-daemon]["$( echo _time )"] Starting daemon background process..." >> '/usr/local/lib/streama/etc/daemon.log' && \
+	echo -e "[streama-daemon]["$( echo _time )"] Use 'streama stop daemon' to stop streama's daemon." >> '/usr/local/lib/streama/etc/daemon.log' && \
+	echo -e "[streama-daemon]["$( echo _time )"] Use 'streama help' for more instructions on how to use the 'streama' command." >> '/usr/local/lib/streama/etc/daemon.log' && \
+	
+	# Execute jar with java and make sure it won't respond to session exits and startups and save the output of the executable to a log file.
+	nohup sudo bash '/usr/local/lib/streama/bin/daemon' 2>&1 &
+
+	# Save the pid of this program to a file for later use in for example: shutdown of the program.
+	echo $! > '/usr/local/lib/streama/etc/daemon.pid' && \
+	
+	# Log that streama has started
+	echo -e "[streama-daemon]["$( echo _time )"] Successfully started background process with pid: $!..." >> '/usr/local/lib/streama/etc/daemon.log' && \
+	echo -e "[streama-daemon]["$( echo _time )"] Use 'streama log { streama | daemon }' to see live logs in the terminal." >> '/usr/local/lib/streama/etc/daemon.log';
+
+	# Return results for checking if execution went right.
+	return 0;
+}
+
+# Execute start function.
+_start "0:300:10";
+
+# Check for errors during execution.
+[ $? -ne 0 ] && echo -e "[streama-daemon]["$( echo _time )"] ERROR: Streama's daemon could not be started, please read the manual." >> '/usr/local/lib/streama/etc/daemon.log' && exit 1;
+
+# Exit this bash script.
+exit 0;

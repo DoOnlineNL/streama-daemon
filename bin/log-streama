@@ -4,7 +4,7 @@
 # Website: https://www.doonline.nl
 
 # Tell the user that he can stop the log without killing the executable with ctrl+c
-echo -e "[streama-daemon] NOTICE: Exiting with CTRL+C does not kill the program, use: streama-daemon stop, to kill streama.";
+echo -e "[streama-daemon] NOTICE: Exiting with CTRL+C does not kill the program, use: 'streama stop streama', to kill streama.";
 
 # Start a loop to display executable log from stored file.
 while tail -f '/usr/local/lib/streama/etc/streama.log'; do

@@ -10,7 +10,7 @@
 # Script Variables
 _AUTH='doOnline';
 _VERS='1.0.1';
-_DESC='Program handler, current version '"$_VERS"' maintained by '"$_AUTH"'.';
+_DESC='Streama and its daemon program handler, current version '"$_VERS"' maintained by '"$_AUTH"'.';
 
 # Configuration Variables
 _DEBUG=1;
@@ -20,25 +20,31 @@ _LIB_NAME="streama";
 _BIN_DIR="/usr/local/bin";
 _LIB_DIR="/usr/local/lib/$_LIB_NAME";
 
-_DAEMON_ACTIVE=0;
 _DAEMON_START="$_LIB_DIR/bin/start-daemon";
 _DAEMON_STOP="$_LIB_DIR/bin/stop-daemon";
 _DAEMON_LOG="$_LIB_DIR/bin/log-daemon";
 _DAEMON_VAR="$_LIB_DIR/etc/daemon.var";
 _DAEMON_VARS="0:300:10";
-_DAEMON_PID=$( tail -f "$_LIB_DIR/etc/daemon.pid" );
+_DAEMON_PID=$( cat "$_LIB_DIR/etc/daemon.pid" );
+_DAEMON_DATA[0]="$_LIB_DIR/etc/daemon.pid";
+_DAEMON_DATA[1]="$_LIB_DIR/etc/daemon.log";
+_DAEMON_DATA[2]="$_LIB_DIR/etc/daemon_old.log";
+_DAEMON_DATA[3]="$_LIB_DIR/etc/daemon.var";
 
-_STREAMA_ACTIVE=0;
 _STREAMA_START="$_LIB_DIR/bin/start-streama";
 _STREAMA_STOP="$_LIB_DIR/bin/stop-streama";
 _STREAMA_LOG="$_LIB_DIR/bin/log-streama";
-_STREAMA_PID=$( tail -f "$_LIB_DIR/etc/streama.pid" );
+_STREAMA_PID=$( cat "$_LIB_DIR/etc/streama.pid" );
+_STREAMA_DATA[0]="$_LIB_DIR/etc/streama.pid";
+_STREAMA_DATA[1]="$_LIB_DIR/etc/streama.log";
+_STREAMA_DATA[2]="$_LIB_DIR/etc/streama_old.log";
 
 # Functions
 function _HELP()
 {
-printf "
+	echo -e "
 [streama] program usage guide for controlling streama and its daemon,
+$_DESC
 
 Usage:
 	streama	[ command ]		[ argument ]
@@ -73,8 +79,120 @@ Commands:
 If no command is given, the standard procedure is executed
 and will try to debug whats going on in the background,
 if anything noticable is seen by this procedure, the user
-will be prompted to take action.
-" && return 0;
+will be prompted to take action.";
+}
+
+function _CLEANUP()
+{
+	if [ ! -z $1 ]; then
+		local _EMPTY="";
+		case $1 in
+		  streama)
+		    # Clean streama data
+		    echo -e "[streama] Trying to clean Streama's data files and backup last logs...";
+		    echo "$_EMPTY" > $_STREAMA_DATA[0] && \
+		    cat $_STREAMA_DATA[1] >> $_STREAMA_DATA[2] && \
+		    echo "$_EMPTY" > $_STREAMA_DATA[1];
+		    echo -e "[streama] Finished cleaning Streama's data files and backup last logs...";
+		    return 0;
+		    ;;
+		  daemon)
+		    # Clean daemon data
+		    echo -e "[streama] Trying to clean Streama its daemon data files and backup last logs...";
+		    echo "$_EMPTY" > $_DAEMON_DATA[0] < echo "$_EMPTY" && \
+		    cat $_DAEMON_DATA[1] >> $_DAEMON_DATA[2] && \
+		    echo "$_EMPTY" > $_DAEMON_DATA[1] < echo "$_EMPTY" && \
+		    echo "$_EMPTY" > $_DAEMON_DATA[3] < echo "$_EMPTY";
+		    echo -e "[streama] Finished cleaning Streama its daemon data files and backup last logs...";
+		    return 0;
+		    ;;
+		esac
+	else
+		echo -e "[streama] _CLEANUP requires an argument to know what to do" && return 1;
+	fi
+	return 1;
+}
+
+function _LOG()
+{
+	if [ ! -z $1 ]; then
+		local _EMPTY="";
+		case $1 in
+		  streama)
+		    # Log streama
+		    bash "$_STREAMA_LOG" && \
+		    echo -e "[streama] Finished logging Streama's log...";
+		    return 0;
+		    ;;
+		  daemon)
+		    # Log daemon
+		    bash "$_DAEMON_LOG" && \
+		    echo -e "[streama] Finished logging Streama daemon's log...";
+		    return 0;
+		    ;;
+		esac
+	else
+		echo -e "[streama] Please use an argument, use 'streama help' for a guide for each command." && return 0;
+	fi
+	return 1;
+}
+
+function _START()
+{
+	if [ ! -z $1 ]; then
+		case $1 in
+		  streama)
+		    # Start streama
+		    echo -e "[streama] Trying to start Streama...";
+		    bash "$_STREAMA_START";
+		    [ $? -ne 0 ] && echo -e "[streama] Failed to start Streama." && return 1;
+		    return 0;
+		    ;;
+		  daemon)
+		    # Start daemon
+		    echo -e "[streama] Trying to start Streama's daemon...";
+		    bash "$_DAEMON_START";
+		    [ $? -ne 0 ] && echo -e "[streama] Failed to start Streama's daemon." && return 1;
+		    return 0;
+		    ;;
+		esac
+	else
+		# Start daemon
+		echo -e "[streama] Trying to start Streama and its daemon...";
+		bash "$_DAEMON_START";
+		[ $? -ne 0 ] && echo -e "[streama] Failed to start Streama's and its daemon." && return 1;
+		return 0;
+	fi
+	return 1;
+}
+
+function _STOP()
+{
+	if [ ! -z $1 ]; then
+		case $1 in
+		  streama)
+		    # Stop streama
+		    echo -e "[streama] Trying to stop Streama...";
+		    bash "$_STREAMA_STOP";
+		    [ $? -ne 0 ] && echo -e "[streama] Failed to stop Streama." && return 1;
+		    return 0;
+		    ;;
+		  daemon)
+		    # Stop daemon
+		    echo -e "[streama] Trying to stop Streama's daemon...";
+		    bash "$_DAEMON_STOP";
+		    [ $? -ne 0 ] && echo -e "[streama] Failed to stop Streama's daemon." && return 1;
+		    return 0;
+		    ;;
+		esac
+	else
+		# Stop daemon
+		echo -e "[streama] Trying to stop Streama and its daemon...";
+		bash "$_DAEMON_STOP";
+		[ $? -ne 0 ] && echo -e "[streama] Failed to stop Streama's and its daemon." && return 1;
+		return 0;
+	fi
+	return 1;
 }
 
 function _MAIN()
@@ -83,34 +201,52 @@ function _MAIN()
 	local _COMMAND=$1;
 	local _ARG=$2;
 	
-	if [ -z "$_COMMAND" ]; then
+	if [ "$_COMMAND" != "" ]; then
 		case "$_COMMAND" in
-		  '--help' | '-h' | 'help' | *)
-		    $( _HELP ) && return $?;
+		  --help | -h | help)
+		    echo _HELP && return 0;
 		    ;;
-		  '--stop' | '--end' | '-e' | 'stop' | 'end')
-		    $( _STOP "$_ARG" ) && return $?;
+		  --stop | --end | -e | stop | end)
+		    _STOP "$_ARG" && return $?;
 		    ;;
-		  '--start' | '--run' | '-r' | 'start' | 'run')
-		    $( _START "$_ARG" ) && return $?;
+		  --start | --run | -r | start | run)
+		    _START "$_ARG" && return $?;
 		    ;;
-		  '--log' | '--debug' | '-l' | '-d' | 'log' | 'debug')
-		    $( _LOG "$_ARG" ) && return $?;
+		  --log | --debug | -l | -d | log | debug)
+		    _LOG "$_ARG" && return $?;
 		    ;;
 		esac
 	fi
 	
 	# Check if streama or its daemon is not already running.
-	[ -z "$_DAEMON_PID" ] && [ ps -p "$_DAEMON_PID" ] && _DAEMON_ACTIVE=1 && echo -e "[streama] Streama's daemon seems to be running, should we stop it? [y/n]" && read _STOP_DAEMON;
-	[ -z "$_STREAMA_PID" ] && [ ps -p "$_STREAMA_PID" ] && [ "$_STOP_DAEMON" == "y" ] || [ "$_STOP_DAEMON" == "ye" ] || [ "$_STOP_DAEMON" == "yes" ] && _STREAMA_ACTIVE=1 && echo -e "[streama] Streama seems to be running, should we stop it? [y/n]" && read _STOP_STREAMA;
+	[ "$_DAEMON_PID" != "" ] && [ ps -p "$_DAEMON_PID" ] && echo -e "[streama] Streama's daemon seems to be running, should we stop it? [y/n]" && read _STOP_DAEMON;
+	[ "$_STREAMA_PID" != "" ] && [ ps -p "$_STREAMA_PID" ] && $( if [ "$_STOP_DAEMON" == "y" ] || [ "$_STOP_DAEMON" == "ye" ] || [ "$_STOP_DAEMON" == "yes" ]; then return 1 else return 0 fi ) && echo -e "[streama] Streama seems to be running, should we stop it? [y/n]" && read _STOP_STREAMA;
 	
 	# Read users input if they where asked to say if the process needed to be stopped.
-	if [ -z "$_STOP_DAEMON" ]; then if [ "$_STOP_DAEMON" == "y" ] || [ "$_STOP_DAEMON" == "ye" ] || [ "$_STOP_DAEMON" == "yes" ]; then echo -e "[streama] Shutting down Streama's daemon..." && $( bash "$_LIB_DIR"/bin/daemon-stop ) && [ $? -eq 0 ] && echo -e "[streama] Successfully shut down Streama's daemon..."; fi echo -e "[streama] Not shutting down Streama's daemon...\n[streama] If you still want to stop Streama's daemon use 'streama stop daemon' or 'streama stop'."; fi
+	if [ "$_STOP_DAEMON" != "" ]; then 
+		if [ "$_STOP_DAEMON" == "y" ] || [ "$_STOP_DAEMON" == "ye" ] || [ "$_STOP_DAEMON" == "yes" ]; then 
+			echo -e "[streama] Shutting down Streama's daemon..." && \
+			bash "$_STREAMA_STOP";
+			[ $? -eq 0 ] && echo -e "[streama] Successfully shut down Streama's daemon...";
+			_CLEANUP daemon;
+			[ $? -ne 0 ] && echo -e "[streama] ERROR: Couldn't clean up data." && return 1;
+		else 
+			echo -e "[streama] Not shutting down Streama's daemon...\n[streama] If you still want to stop Streama's daemon use 'streama stop daemon' or 'streama stop'.";
+		fi
+	fi
 	
-	if [ -z "$_STOP_STREAMA" ] || [ -z "$_STOP_DAEMON" ]; then if [ "$_STOP_STREAMA" == "y" ] || [ "$_STOP_STREAMA" == "ye" ] || [ "$_STOP_STREAMA" == "yes" ] || [ "$_STOP_DAEMON" == "y" ] || [ "$_STOP_DAEMON" == "ye" ] || [ "$_STOP_DAEMON" == "yes" ]; then echo -e "[streama] Shutting down Streama..." && $( bash "$_LIB_DIR"/bin/streama-stop ) && [ $? -eq 0 ] && echo -e "[streama] Successfully shut down Streama..."; fi echo -e "[streama] Not shutting down Streama...\n[streama] If you still want to stop Streama use 'streama stop streama' or 'streama stop'."; fi
+	if [ "$_STOP_STREAMA" != "" ] || [ "$_STOP_DAEMON" != "" ]; then
+		if [ "$_STOP_STREAMA" == "y" ] || [ "$_STOP_STREAMA" == "ye" ] || [ "$_STOP_STREAMA" == "yes" ] || [ "$_STOP_DAEMON" == "y" ] || [ "$_STOP_DAEMON" == "ye" ] || [ "$_STOP_DAEMON" == "yes" ]; then
+			echo -e "[streama] Shutting down Streama..." && \
+			bash "$_STREAMA_STOP";
+			[ $? -eq 0 ] && echo -e "[streama] Successfully shut down Streama...";
+			_CLEANUP streama;
+			[ $? -ne 0 ] && echo -e "[streama] ERROR: Couldn't clean up data." && return 1;
+		else
+			echo -e "[streama] Not shutting down Streama...\n[streama] If you still want to stop Streama use 'streama stop streama' or 'streama stop'.";
+		fi
+	fi
 	
-	# Clean up saved pids and vars, also save previously logged data to backup files and empty the current ones.
-	# Cleaning up should only be executed if both processes are being shut down. if only the daemon is being shut down let saved data from streama be as is.
 	return 0;
 }
 
